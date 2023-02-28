@@ -5,12 +5,33 @@ import FSM.Sequence;
 
 import java.util.List;
 
-public interface DataProcessTool {
-    public void readFileFromLog();
-    public void start();
-    public void outputToFile(List<Sequence> resultSequenceList);
-    public void setTimeLimit(int timeLimit);
-    public void generateSequences(List<ItemSet> itemSetList, List<Sequence> sequenceList);
-    public List<Sequence> getSequenceList();
-    public List<Sequence> getSequenceList(String appID);
+public class DataProcessTool {
+    public void readFileFromLog() {
+
+    }
+
+    public void start(){
+        this.readFileFromLog();
+        this.setTimeLimit(10);
+    };
+
+    public void outputToFile(List<Sequence> resultSequenceList) {
+
+    }
+
+    public void setTimeLimit(int timeLimit) {
+
+    }
+
+    public void generateSequences(List<ItemSet> itemSetList, List<Sequence> sequenceList) {
+
+    }
+
+    public List<Sequence> getSequenceList() {
+        return null;
+    }
+
+    public List<Sequence> getSequenceList(String appID) {
+        return null;
+    }
 }

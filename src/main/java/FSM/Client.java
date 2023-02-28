@@ -1,7 +1,8 @@
 package FSM;
 
 
-import FSM.GSP.GSPTool;
+import FSM.Algorithm.GSPTool;
+import FSM.Algorithm.PreFixSpanTool;
 import FSM.Output.AzureExcelWriter;
 import FSM.tools.AzureApp;
 import FSM.tools.AzureTraceTool;
@@ -10,6 +11,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -18,6 +20,92 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Client {
     public static void main(String[] args){
+        //doPreFixSpan();
+        doGSP();
+    }
+
+    private static void doPreFixSpan(){
+        String filePath = "C:\\Users\\Administrator\\Desktop\\Cloud\\test.txt";
+
+        String AzurefilePath = "C:\\Users\\Administrator\\Desktop\\Cloud\\AzureFunctionsInvocationTraceForTwoWeeksJan2021\\AzureFunctionsInvocationTraceForTwoWeeksJan2021.txt";
+
+        String outputFilePath = "C:\\Users\\Administrator\\Desktop\\Cloud\\output.txt";
+
+        ExecutorService es = Executors.newFixedThreadPool(10);
+        //最小支持度阈值
+        int minSupportCount = 10;
+
+
+        List<AzureApp> appList = new ArrayList<>();
+
+        AzureTraceTool dataTool = new AzureTraceTool(AzurefilePath,outputFilePath,10);
+        dataTool.start();
+
+        PreFixSpanTool tool = new PreFixSpanTool(minSupportCount, dataTool);
+
+        int counter = 1;
+        for (String name : dataTool.getAppMap().keySet()) {
+            AzureApp app = dataTool.getAppMap().get(name);
+            System.out.println("app id: " + name +"  App NO：: "+ counter);
+            System.out.println("app itemSet list length: " + app.getItemSetList().size());
+            System.out.println("app sequence list length: " + app.getSequenceList().size());
+            System.out.println("app entity num:" + app.getEntity2IdMap().size());
+            counter++;
+
+
+            if(!app.isValid()){
+                System.out.println("app fail to pass filter, no need to process");
+                System.out.println("-------------------------");
+                continue;
+            }
+            appList.add(app);
+
+            /*
+            tool.setOriginSequences(dataTool.getSequenceList(name));
+            boolean res = tool.preFixSpanCalculate();
+
+            //深拷贝到app中
+            List<Sequence> resSequenceList = new ArrayList<>();
+            CollectionUtils.addAll(resSequenceList,tool.getTotalFrequencySeqs());
+            Collections.copy(resSequenceList,tool.getTotalFrequencySeqs());
+            app.setFrequentSequenceList(resSequenceList);
+
+            tool.clear();*/
+
+            Future<Boolean> future = es.submit(() ->{
+                tool.setOriginSequences(dataTool.getSequenceList(name));
+
+                boolean res = tool.preFixSpanCalculate();
+
+                List<Sequence> resSequenceList = new ArrayList<>();
+                CollectionUtils.addAll(resSequenceList,tool.getTotalFrequencySeqs());
+                Collections.copy(resSequenceList,tool.getTotalFrequencySeqs());
+                app.setFrequentSequenceList(resSequenceList);
+
+                tool.clear();
+                return res;
+            });
+            try {
+                future.get(100, TimeUnit.SECONDS);
+            } catch (ExecutionException | InterruptedException e) {
+                e.printStackTrace();
+            } catch (TimeoutException e) {
+                System.out.println("Too much time cost!");
+            } finally {
+                tool.clear();
+            }
+
+            System.out.println("-------------------------");
+        }
+        es.shutdown();
+
+
+
+//        AzureExcelWriter writer = new AzureExcelWriter("C:\\Users\\Administrator\\Desktop\\Cloud\\output.xlsx",appList);
+//        writer.writeToExcel();
+    }
+
+    private static void doGSP(){
         String filePath = "C:\\Users\\Administrator\\Desktop\\Cloud\\test.txt";
 
         String AzurefilePath = "C:\\Users\\Administrator\\Desktop\\Cloud\\AzureFunctionsInvocationTraceForTwoWeeksJan2021\\AzureFunctionsInvocationTraceForTwoWeeksJan2021.txt";
@@ -36,8 +124,7 @@ public class Client {
 
         AtomicInteger longestFSlength = new AtomicInteger();
 
-        AzureTraceTool dataTool = new AzureTraceTool(AzurefilePath,outputFilePath);
-        dataTool.setTimeLimit(10000);
+        AzureTraceTool dataTool = new AzureTraceTool(AzurefilePath,outputFilePath,10);
 
         GSPTool tool = new GSPTool(minSupportCount, min_gap, max_gap, dataTool);
         System.out.println(dataTool.getAppMap().keySet().size());
@@ -88,20 +175,26 @@ public class Client {
             Future<Boolean> future = es.submit(() ->{
                 tool.setOriginSequences(dataTool.getSequenceList(name));
                 boolean res = tool.gspCalculate();
+
+                //拷贝结果，将结果赋给app（算法tool中的结果将会被清理）
                 List<Sequence> resSequenceList = new ArrayList<>();
                 CollectionUtils.addAll(resSequenceList,tool.getTotalFrequencySeqs());
                 Collections.copy(resSequenceList,tool.getTotalFrequencySeqs());
                 app.setFrequentSequenceList(resSequenceList);
 
+                //记录最长frequent sequence
                 if(tool.getTotalFrequencySeqs().size() > longestFSlength.get()){
                     longestFSlength.set(tool.getTotalFrequencySeqs().size());
                 }
 
+                //清理算法tool的数据，进行下次计算
                 tool.clear();
                 return res;
             });
+
+            //10s 时间限制
             try {
-                future.get(10, TimeUnit.SECONDS);
+                future.get(60, TimeUnit.SECONDS);
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
             } catch (TimeoutException e) {
@@ -117,12 +210,7 @@ public class Client {
 
 
 
-        AzureExcelWriter writer = new AzureExcelWriter("C:\\Users\\Administrator\\Desktop\\Cloud\\output.xlsx",appList);
-        writer.writeToExcel();
-
-    }
-
-    private void doFilter(){
-
+       /* AzureExcelWriter writer = new AzureExcelWriter("C:\\Users\\Administrator\\Desktop\\Cloud\\output.xlsx",appList);
+        writer.writeToExcel();*/
     }
 }

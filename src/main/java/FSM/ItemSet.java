@@ -63,6 +63,13 @@ public class ItemSet {
         this.items = itemNum;
     }
 
+    /**
+     * 判断itemSet是否为空
+     * @return boolean
+     */
+    public boolean isEmpty(){
+        return this.getItems().size() == 0;
+    }
 
     public List<Integer> getItems() {
         return items;
@@ -117,5 +124,10 @@ public class ItemSet {
     public List<Integer> copyItems() {
 
         return new ArrayList<>(this.items);
+    }
+
+    public Integer getLastValue(){
+        int size = this.getItems().size();
+        return this.getItems().get(size-1);
     }
 }

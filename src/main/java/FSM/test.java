@@ -1,30 +1,65 @@
 package FSM;
 
-import FSM.tools.AzureTraceTool;
+import Simulator.Utils.CSVUtil;
+import Simulator.ContainerScheduler;
+import Simulator.Enums.Policy;
 
 public class test {
-    /*public static void main(String[] args) throws ParseException {
-        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String dateString = "2023-02-10 16:09:00";
-        Date date = dateFormatter.parse(dateString);
-        long timeInSec = date.getTime()/1000;
-        System.out.println(timeInSec);
-        double time2Float = (double) timeInSec;
-        System.out.println(time2Float);
-    }*/
+
 
     public static void main(String[] args) {
-        String filePath = "C:\\Users\\Administrator\\Desktop\\Cloud\\AzureFunctionsInvocationTraceForTwoWeeksJan2021\\AzureFunctionsInvocationTraceForTwoWeeksJan2021.txt";
-        String outputFilePath = "C:\\Users\\Administrator\\Desktop\\Cloud\\output.txt";
-        //最小支持度阈值
-        int minSupportCount = 2;
-        //时间最小间隔
-        double min_gap = 0.1;
-        //施加最大间隔
-        double max_gap = 5;
+        //test();
+        simulateMultipleTimes();
+    }
 
-        AzureTraceTool tool = new AzureTraceTool(filePath,outputFilePath);
-        tool.setTimeLimit(10);
-        tool.start();
+    public static void test(){
+
+        String representativeFuncPath = "E:\\data\\representative\\functions.csv";
+        String representativeInvokePath = "E:\\data\\representative\\invokes.csv";
+        String representativeIntermediatePath = "E:\\data\\representative\\intermediate.csv";
+        String repInvokeResPath = "E:\\data\\representative\\results\\invokeRes.csv";
+        String repContainerResPath = "E:\\data\\representative\\results\\container.csv";
+        String perMinResPath = "E:\\data\\representative\\results\\perMinute.csv";
+
+        int memCapacity = 64 * 1024; //内存池空间 单位：Mb
+        CSVUtil util = new CSVUtil(representativeFuncPath,representativeIntermediatePath);
+
+
+        ContainerScheduler scheduler = new ContainerScheduler(memCapacity, Policy.DSMP,representativeInvokePath,repInvokeResPath,repContainerResPath,perMinResPath, (int) (memCapacity * 0.7));
+        util.ReadData(true);
+        util.sendDataToSimulator(scheduler);
+
+        scheduler.doMainLoop(1440);
+
+
+    }
+
+    public static void simulateMultipleTimes(){
+        String representativeFuncPath = "E:\\data\\representative\\functions.csv";
+        String representativeInvokePath = "E:\\data\\representative\\invokes.csv";
+        String representativeIntermediatePath = "E:\\data\\representative\\intermediate.csv";
+
+
+
+        String repInvokeResPath = "E:\\data\\representative\\results\\invokeRes";
+        String repContainerResPath = "E:\\data\\representative\\results\\container";
+        String perMinResPath = "E:\\data\\representative\\results\\perMinute";
+
+        CSVUtil util = new CSVUtil(representativeFuncPath,representativeIntermediatePath);
+        util.ReadData(true);
+
+        int[] ints = {8,16,24,32,48};
+        for (int i : ints) {
+            System.out.println("内存大小:" + i + "GB");
+            int memCapacity = i * 1024; //内存池空间 单位：Mb
+
+            ContainerScheduler scheduler = new ContainerScheduler(memCapacity, Policy.DSMP,representativeInvokePath,
+                    repInvokeResPath + i + "G.csv",repContainerResPath + i + "G.csv",perMinResPath + i + "G.csv",
+                    (int) (memCapacity * 0.7));
+            util.sendDataToSimulator(scheduler);
+
+            scheduler.doMainLoop(1440);
+
+        }
     }
 }

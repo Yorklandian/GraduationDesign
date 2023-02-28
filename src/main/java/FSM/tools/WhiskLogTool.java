@@ -8,7 +8,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class WhiskLogTool implements DataProcessTool {
+public class WhiskLogTool extends DataProcessTool {
     //日志文件路径
     private String logFilePath;
     //输出文件路径
@@ -37,6 +37,7 @@ public class WhiskLogTool implements DataProcessTool {
         this.outputFilePath = outputFilePath;
         this.logFile = new File(logFilePath);
         this.outputFile = new File(outputFilePath);
+        this.start();
     }
 
     /**

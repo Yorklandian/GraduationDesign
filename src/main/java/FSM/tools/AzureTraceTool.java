@@ -1,5 +1,6 @@
 package FSM.tools;
 
+import FSM.Filters.SequenceFilter;
 import FSM.ItemSet;
 import FSM.Sequence;
 
@@ -10,7 +11,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
 
-public class AzureTraceTool implements DataProcessTool{
+public class AzureTraceTool extends DataProcessTool{
     private String traceFilePath;
     private String outPutFilePath;
     private File traceFile;
@@ -26,12 +27,13 @@ public class AzureTraceTool implements DataProcessTool{
     static Integer itemID = 1;
     static Integer transactionID = 1;
 
-    public AzureTraceTool(String traceFilePath,String outPutFilePath){
+    public AzureTraceTool(String traceFilePath,String outPutFilePath, int timeLimit){
         this.traceFilePath = traceFilePath;
         this.outPutFilePath = outPutFilePath;
         this.traceFile = new File(traceFilePath);
         this.outputFile = new File(outPutFilePath);
-
+        this.timeLimit = timeLimit;
+        this.start();
     }
 
 
@@ -63,7 +65,6 @@ public class AzureTraceTool implements DataProcessTool{
                 }
 
 
-                //先只处理一个app试试
                 if(appMap.containsKey(appID)){
                     List<ItemSet> itemSetList = appMap.get(appID).getItemSetList();
                     Map<String,Integer> entity2IDMap = appMap.get(appID).getEntity2IdMap();
@@ -166,6 +167,7 @@ public class AzureTraceTool implements DataProcessTool{
             }
             lastTime = time;
         }
+        //SequenceFilter.combineMultiReplicateItemSets(3,sequence);
         sequenceList.add(sequence);
     }
 

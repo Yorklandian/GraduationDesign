@@ -1,4 +1,4 @@
-package FSM.GSP;
+package FSM.Algorithm;
 
 import FSM.Filters.SequenceFilter;
 import FSM.ItemSet;
@@ -41,7 +41,6 @@ public class GSPTool {
         this.dataProcessTool = dataTool;
         totalFrequencySeqs = new ArrayList<>();
 
-        readData();
     }
 
     /**
@@ -53,61 +52,56 @@ public class GSPTool {
         this.itemNum2Time.clear();
     }
 
-    private void readData(){
-        dataProcessTool.setTimeLimit(10);
-        dataProcessTool.start();
-        //this.originSequences = dataProcessTool.getSequenceList();
-    }
 
     /**
      * 从文件中读取数据,并生成对应的itemSet和Sequence,并将其加入到originalSequences中
      */
     //TODO: 未对时间进行处理，同时文件格式应进行更改
-//    private void readDataFile() {
-//        File file = new File(filePath);
-//        ArrayList<String[]> dataArray = new ArrayList<String[]>();
-//
-//        try {
-//            BufferedReader in = new BufferedReader(new FileReader(file));
-//            String str;
-//            String[] tempArray;
-//            while ((str = in.readLine()) != null) {
-//                tempArray = str.split(" ");
-//                dataArray.add(tempArray);
-//            }
-//            in.close();
-//        } catch (IOException e) {
-//            e.getStackTrace();
-//        }
-//
-//        HashMap<Integer, Sequence> mapSeq = new HashMap<>();
-//        Sequence seq;
-//        ItemSet itemSet;
-//        int tID;
-//        Integer time;
-//        String[] itemStr;
-//        for (String[] str : dataArray) {
-//            tID = Integer.parseInt(str[0]);
-//            itemStr = new String[Integer.parseInt(str[1])];
-//            time = Integer.parseInt(str[2]);
-//            System.arraycopy(str, 3, itemStr, 0, itemStr.length);
-//            itemSet = new ItemSet(itemStr,time);
-//
-//            if (mapSeq.containsKey(tID)) {
-//                seq = mapSeq.get(tID);
-//            } else {
-//                seq = new Sequence(tID);
-//            }
-//            seq.getItemSetList().add(itemSet);
-//            mapSeq.put(tID, seq);
-//        }
-//
-//        // 将序列图加入到序列List中
-//        originSequences = new ArrayList<>();
-//        for (Map.Entry entry : mapSeq.entrySet()) {
-//            originSequences.add((Sequence) entry.getValue());
-//        }
-//    }
+/*    private void readDataFile() {
+        File file = new File(filePath);
+        ArrayList<String[]> dataArray = new ArrayList<String[]>();
+
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(file));
+            String str;
+            String[] tempArray;
+            while ((str = in.readLine()) != null) {
+                tempArray = str.split(" ");
+                dataArray.add(tempArray);
+            }
+            in.close();
+        } catch (IOException e) {
+            e.getStackTrace();
+        }
+
+        HashMap<Integer, Sequence> mapSeq = new HashMap<>();
+        Sequence seq;
+        ItemSet itemSet;
+        int tID;
+        Integer time;
+        String[] itemStr;
+        for (String[] str : dataArray) {
+            tID = Integer.parseInt(str[0]);
+            itemStr = new String[Integer.parseInt(str[1])];
+            time = Integer.parseInt(str[2]);
+            System.arraycopy(str, 3, itemStr, 0, itemStr.length);
+            itemSet = new ItemSet(itemStr,time);
+
+            if (mapSeq.containsKey(tID)) {
+                seq = mapSeq.get(tID);
+            } else {
+                seq = new Sequence(tID);
+            }
+            seq.getItemSetList().add(itemSet);
+            mapSeq.put(tID, seq);
+        }
+
+        // 将序列图加入到序列List中
+        originSequences = new ArrayList<>();
+        for (Map.Entry entry : mapSeq.entrySet()) {
+            originSequences.add((Sequence) entry.getValue());
+        }
+    }*/
 
     /**
      * 生成1频繁项集
@@ -575,12 +569,14 @@ public class GSPTool {
     }
 
     /**
-     * 过滤结果,移除 全重复的，单个的，非最大的结果
+     * 过滤结果,移除 全重复的，单个的，非最大的，不平衡的结果
      */
     public void doFilter(){
-        SequenceFilter.filterToMaxFreqPatterns(this.getTotalFrequencySeqs());
-        SequenceFilter.filterOneItemSequences(this.getTotalFrequencySeqs());
-        SequenceFilter.filterReplicateSequence(this.getTotalFrequencySeqs());
+//        SequenceFilter.filterToMaxFreqPatterns(this.getTotalFrequencySeqs());
+//        SequenceFilter.filterOneItemSequences(this.getTotalFrequencySeqs());
+//        SequenceFilter.filterReplicateSequence(this.getTotalFrequencySeqs());
+//        SequenceFilter.filterUnbalanceSequences(this.getTotalFrequencySeqs());
+        SequenceFilter.doAllFilter(this.getTotalFrequencySeqs());
     }
 
     /**
