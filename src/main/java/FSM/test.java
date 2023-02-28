@@ -1,5 +1,6 @@
 package FSM;
 
+import Simulator.MemoryBlock;
 import Simulator.Utils.CSVUtil;
 import Simulator.ContainerScheduler;
 import Simulator.Enums.Policy;
@@ -48,24 +49,35 @@ public class test {
         CSVUtil util = new CSVUtil(representativeFuncPath,representativeIntermediatePath);
         util.ReadData(true);
 
-        int[] ints = {8};
+        int[] ints = {8,16,24,32,48};
         Policy[] policies = {Policy.LRU,Policy.SSMP,Policy.DSMP};
-        for (Policy policy :policies) {
-            for (int i : ints) {
-                System.out.println("内存大小:" + i + "GB");
-                int memCapacity = i * 1024; //内存池空间 单位：Mb
+        int[] waitTimes = {100,1000,10000};
+        for (int waitTime :waitTimes) {
+            for (Policy policy :policies) {
+                for (int i : ints) {
+                    System.out.println("内存大小:" + i + "GB");
+                    System.out.println("等待时间:" + waitTime + "ms");
+                    System.out.println("采用策略:" + policy);
+                    int memCapacity = i * 1024; //内存池空间 单位：Mb
+                    MemoryBlock.messageTTL = waitTime;
+                    String preFixPath = dirPath + waitTime + "ms\\" + policy.toString();
+                    ContainerScheduler scheduler = new ContainerScheduler(memCapacity, policy,representativeInvokePath,
+                            preFixPath + repInvokeResPath + i + "G.csv",
+                            preFixPath + repContainerResPath + i + "G.csv",
+                            preFixPath +perMinResPath + i + "G.csv",
+                            (int) (memCapacity * 0.7));
+                    util.sendDataToSimulator(scheduler);
 
-                ContainerScheduler scheduler = new ContainerScheduler(memCapacity, policy,representativeInvokePath,
-                        dirPath + policy.toString() + repInvokeResPath + i + "G.csv",
-                        dirPath + policy.toString() + repContainerResPath + i + "G.csv",
-                        dirPath + policy.toString() +perMinResPath + i + "G.csv",
-                        (int) (memCapacity * 0.7));
-                util.sendDataToSimulator(scheduler);
+                    scheduler.doMainLoop(1440);
 
-                scheduler.doMainLoop(60);
-
+                }
+                System.out.println("\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\");
             }
+            System.out.println("----------------------------------------");
+            System.out.println();
+            System.out.println();
         }
+
 
     }
 }
