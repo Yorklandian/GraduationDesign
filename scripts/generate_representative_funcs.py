@@ -3,8 +3,8 @@ import pandas as pd
 from multiprocessing import Pool
 from math import ceil
 
-func_path = "E:\\data\\representative\\functions.csv"
-invoke_path = "E:\\data\\representative\\invokes.csv"
+func_path = "D:\\data\\representative\\functions.csv"
+invoke_path = "D:\\data\\representative\\invokes.csv"
 buckets = [str(i) for i in range(1, 1441)]
 
 datapath = "C:\\Users\\Administrator\\Desktop\\Cloud\\Azure2019Data\\Azure2019\\"
@@ -106,6 +106,6 @@ def gen_traces(func_nums):
 #     os.remove(invoke_path)        
 # gen_traces(400)
 
-df = pd.read_csv("C:\\Users\\Administrator\\Desktop\\functions.csv")
+df = pd.read_csv(func_path)
 generate_invoke_df(df)
 
