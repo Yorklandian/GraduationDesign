@@ -1,6 +1,7 @@
 package Simulator;
 
 import Simulator.Record.InvokeResultPerMinute;
+import Simulator.Record.MemPerMinRecord;
 import Simulator.Utils.CSVUtil;
 import Simulator.Enums.Policy;
 import Simulator.Enums.InvokeStatus;
@@ -12,6 +13,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class ContainerScheduler {
+    private static final String ALL_NAME = "All";
+
     //mem allocate policy
     private Policy policy;
 
@@ -26,20 +29,30 @@ public class ContainerScheduler {
     private String invokeResPath;
     private String containerResPath;
     private String perMinuteRecordPath;
+    private String memUsedPerMinRecordPath;
 
     // store info about functions
     private Map<String, Function> nameToFunctionMap = new HashMap<>();
     private List<String> highCostFunctionNameList = new ArrayList<>();
 
     //store info about invoke records
+    //每个函数的调用记录
     private Map<String, InvokeResultRecord> invokeResultRecordMap = new HashMap<>();
+    //每分钟容器evict，ttl记录
     private Map<Integer, ContainerRecord> containerRecordMap = new HashMap<>();
     private ContainerRecord currentContainerRecord;
-    private InvokeResultPerMinute allRecord = new InvokeResultPerMinute("All");
-    private Map<String,InvokeResultPerMinute> highCostRecords = new HashMap<>();
+    //每分钟总的warm，cold，evict之和的记录
+    private InvokeResultPerMinute allPerMinRecord = new InvokeResultPerMinute(ALL_NAME);
+    //保存高cost函数每分钟warm，cold，evict的记录
+    private Map<String,InvokeResultPerMinute> highCostRecordsPerMinMap = new HashMap<>();
+    //保存高cost函数每分钟的内存占用情况
+    private Map<String, MemPerMinRecord> highCostMemPerMinRecordMap = new HashMap<>();
 
 
-    public ContainerScheduler(int memCapacity, Policy policy, String invokeRecordsPath, String invokeResPath, String containerResPath, String perMinuteRecordPath, int maxSepMemBlockCapacity) {
+    public ContainerScheduler(int memCapacity, Policy policy,
+                              String invokeRecordsPath, String invokeResPath,
+                              String containerResPath, String perMinuteRecordPath,
+                              String memUsedPerMinRecordPath, int maxSepMemBlockCapacity) {
         this.mainMemBlock = new MemoryBlock(memCapacity);
         this.policy = policy;
         this.invokeRecordsPath = invokeRecordsPath;
@@ -47,6 +60,7 @@ public class ContainerScheduler {
         this.containerResPath = containerResPath;
         this.perMinuteRecordPath = perMinuteRecordPath;
         this.maxSepMemBlockCapacity = maxSepMemBlockCapacity;
+        this.memUsedPerMinRecordPath = memUsedPerMinRecordPath;
 
     }
 
@@ -77,6 +91,7 @@ public class ContainerScheduler {
                 initSMP((int) (50 * 10 * multiplier), (int) (10 * 10 * multiplier), (int) (1  * multiplier));
                 break;
             default:
+                initLRU();
                 break;
         }
 
@@ -96,6 +111,7 @@ public class ContainerScheduler {
                     currentMinute = currentTime/60000;
                     this.currentContainerRecord = new ContainerRecord();
                     containerRecordMap.put(currentMinute,this.currentContainerRecord);
+
                     System.out.print("time: " + currentMinute + "th minute\r");
                 }
 
@@ -157,6 +173,29 @@ public class ContainerScheduler {
                 //处理main block
                 pollMessageAndInvoke(mainMemBlock,currentTime);
 
+                //4.记录每分钟内存的整体占用情况以及高频函数的内存占用情况
+                for (String name :highCostMemPerMinRecordMap.keySet()) {
+                    //记录总体占用
+                    if(Objects.equals(name, ALL_NAME)){
+                        int memUsed = 0;
+                        if(this.policy == Policy.DSMP || this.policy == Policy.SSMP){
+                            for (MemoryBlock block: seperatedMemBlocksMap.values()) {
+                                memUsed += block.getMemUsed();
+                            }
+                        }
+                        memUsed += mainMemBlock.getMemUsed();
+                        MemPerMinRecord record = highCostMemPerMinRecordMap.get(ALL_NAME);
+                        record.setMemAtMilliSec(currentTime,memUsed);
+                    } else {
+                        //记录高频占用
+                        MemPerMinRecord record = highCostMemPerMinRecordMap.get(name);
+                        Function function = nameToFunctionMap.get(name);
+                        int mem  = function.getContainerNum() * function.getMemSize();
+                        record.setMemAtMilliSec(currentTime,mem);
+
+                    }
+                }
+
                 currentTime++;
             }
             System.out.println();
@@ -164,12 +203,13 @@ public class ContainerScheduler {
             e.printStackTrace();
         }
 
-        //3.记录所有调用结果与container移除数量表
+        //5.记录所有调用结果与container移除数量表
         CSVUtil.writeSimulationResults(this.invokeResPath,this.invokeResultRecordMap);
-        CSVUtil.writeContainerRecords(this.containerResPath,this.containerRecordMap);
+        //CSVUtil.writeContainerRecords(this.containerResPath,this.containerRecordMap);
 
-        highCostRecords.put(allRecord.getName(), allRecord);
-        CSVUtil.writeSimulationResultsPerMinute(this.perMinuteRecordPath,this.highCostRecords);
+        highCostRecordsPerMinMap.put(allPerMinRecord.getName(), allPerMinRecord);
+        CSVUtil.writeSimulationResultsPerMinute(this.perMinuteRecordPath,this.highCostRecordsPerMinMap);
+        CSVUtil.writeMemRecordPerMin(this.memUsedPerMinRecordPath,this.highCostMemPerMinRecordMap);
     }
 
     /**
@@ -253,6 +293,7 @@ public class ContainerScheduler {
     private boolean executeInvoke(FunctionInvoke invoke, int time, MemoryBlock memoryBlock){
         String functionName = invoke.getFunctionName();
         List<Container> containerPool = memoryBlock.getContainerPool();
+        boolean res;
 
         //1.寻找属于此Function的Warm Container
         List<Container> warmContainerForCurrentFunc = containerPool.stream().filter(container ->
@@ -265,7 +306,7 @@ public class ContainerScheduler {
             Container container = warmContainerForCurrentFunc.get(warmContainerForCurrentFunc.size() - 1);
             container.update_WarmToRunning(time);
             recordInvoke(functionName, InvokeStatus.Warm, time);
-            return true;
+            res = true;
 
         } else { //没有warmContainer,尝试生成新的container
 
@@ -278,15 +319,16 @@ public class ContainerScheduler {
                 containerPool.add(container);
                 container.update_initRun(time);
                 memoryBlock.increaseMemUsed(memNeeded);
+                container.getFunction().increaseContainerNum();
                 recordInvoke(functionName, InvokeStatus.Cold, time);
-                return true;
+                res = true;
             } else { //内存不足,evict或drop
                 //寻找所有非running的container
                 List<Container> notRunningContainers = containerPool.stream().filter(Container::isFree).collect(Collectors.toList());
 
                 //所有container都在Running,无法evict,执行失败
                 if (notRunningContainers.size() == 0) {
-                    return false;
+                    res = false;
 
                 } else { //有可驱逐的container，依照LRU策略驱逐
                     boolean evictRes = evictContainer(notRunningContainers, memNeeded, memoryBlock);
@@ -296,15 +338,18 @@ public class ContainerScheduler {
                         containerPool.add(container);
                         container.update_initRun(time);
                         memoryBlock.increaseMemUsed(memNeeded);
+                        container.getFunction().increaseContainerNum();
                         recordInvoke(functionName, InvokeStatus.Cold, time);
-                        return true;
+                        res = true;
                     } else {
                         //驱逐失败,执行失败
-                        return false;
+                        res = false;
                     }
                 }
             }
         }
+
+        return res;
     }
 
 
@@ -326,6 +371,8 @@ public class ContainerScheduler {
 
             int mem = oldestContainer.update_Terminate();
             memoryBlock.decreaseMemUsed(mem);
+            Function function = oldestContainer.getFunction();
+            function.decreaseContainerNum();
 
             notRunningContainers.remove(oldestContainer);
             memoryBlock.getContainerPool().remove(oldestContainer);
@@ -354,45 +401,47 @@ public class ContainerScheduler {
         }
         int timeInMinute = time/60000;
         InvokeResultRecord record = invokeResultRecordMap.get(functionName);
+        //InvokeResultPerMinute singleFuncRecordPerMin = allFunctionPerMinRecordsMap.get(functionName);
         switch (status) {
             case Cold:
                 record.increaseColdStartTime();
-                allRecord.increaseCold(timeInMinute);
+                allPerMinRecord.increaseCold(timeInMinute);
+                //singleFuncRecordPerMin.increaseCold(timeInMinute);
                 break;
             case Warm:
                 record.increaseWarmStartTime();
-                allRecord.increaseWarm(timeInMinute);
+                allPerMinRecord.increaseWarm(timeInMinute);
+                //singleFuncRecordPerMin.increaseWarm(timeInMinute);
                 break;
             case QueueFullDop:
                 record.increaseQueueDropTime();
-                allRecord.increaseQueueFullDrop(timeInMinute);
+                allPerMinRecord.increaseQueueFullDrop(timeInMinute);
+                //singleFuncRecordPerMin.increaseQueueFullDrop(timeInMinute);
                 break;
             case TTLDrop:
                 record.increaseTTLDropTime();;
-                allRecord.increaseTTLDrop(timeInMinute);
+                allPerMinRecord.increaseTTLDrop(timeInMinute);
+                //singleFuncRecordPerMin.increaseTTLDrop(timeInMinute);
         }
 
-        if(this.policy == Policy.DSMP || this.policy == Policy.SSMP){
-            if(highCostFunctionNameList.contains(functionName)){
-                InvokeResultPerMinute ir = highCostRecords.get(functionName);
-                switch (status) {
-                    case Cold:
-                        ir.increaseCold(timeInMinute);
-                        break;
-                    case Warm:
-                        ir.increaseWarm(timeInMinute);
-                        break;
-                    case QueueFullDop:
-                        ir.increaseQueueFullDrop(timeInMinute);
-                        break;
-                    case TTLDrop:
-                        ir.increaseTTLDrop(timeInMinute);
-                }
+        if(highCostFunctionNameList.contains(functionName)){
+            InvokeResultPerMinute ir = highCostRecordsPerMinMap.get(functionName);
+            switch (status) {
+                case Cold:
+                    ir.increaseCold(timeInMinute);
+                    break;
+                case Warm:
+                    ir.increaseWarm(timeInMinute);
+                    break;
+                case QueueFullDop:
+                    ir.increaseQueueFullDrop(timeInMinute);
+                    break;
+                case TTLDrop:
+                    ir.increaseTTLDrop(timeInMinute);
             }
         }
-
-
     }
+
 
     /**
      * 在此毫秒更新容器池中的容器，移除到达TTL的container并将run结束的container状态由running设为warm（(keep_alive)
@@ -407,6 +456,9 @@ public class ContainerScheduler {
                     if(currentTime - container.getKeepAliveStartTime() >= keepAliveTime){
                         this.currentContainerRecord.increaseAutoDie();
                         memoryBlock.decreaseMemUsed(container.getFunction().getMemSize());
+
+                        Function function = container.getFunction();
+                        function.decreaseContainerNum();
                         return true;
                     }
                     return false;
@@ -420,11 +472,26 @@ public class ContainerScheduler {
         }
     }
 
+    /**
+     * 采用LRU策略时的初始化函数
+     */
+    private void initLRU(){
+        highCostMemPerMinRecordMap.put(ALL_NAME,new MemPerMinRecord(ALL_NAME));
+        for (String name :highCostFunctionNameList) {
+            highCostRecordsPerMinMap.put(name,new InvokeResultPerMinute(name));
+            highCostMemPerMinRecordMap.put(name,new MemPerMinRecord(name));
+        }
+    }
 
+
+    /**
+     * 采用SMP策略时的初始化函数
+     */
     private void initSMP(int maxMemoryBlockCount, int maxMemoryBlockCountForOneFunc, int allocateNum){
         int size = this.highCostFunctionNameList.size();
         int sepMemLeft = maxSepMemBlockCapacity;
 
+        highCostMemPerMinRecordMap.put(ALL_NAME,new MemPerMinRecord(ALL_NAME));
         //给高占用的函数分配独立空间
         for (int i = 0; i < size; i++) {
             if(i >= maxMemoryBlockCount){
@@ -432,7 +499,8 @@ public class ContainerScheduler {
             }
             String name = this.highCostFunctionNameList.get(i);
 
-            highCostRecords.put(name,new InvokeResultPerMinute(name));
+            highCostRecordsPerMinMap.put(name,new InvokeResultPerMinute(name));
+            highCostMemPerMinRecordMap.put(name,new MemPerMinRecord(name));
 
             Function func = nameToFunctionMap.get(name);
             int mem = func.getMemSize();;
@@ -468,8 +536,6 @@ public class ContainerScheduler {
             }
 
         }
-
-
     }
 
 

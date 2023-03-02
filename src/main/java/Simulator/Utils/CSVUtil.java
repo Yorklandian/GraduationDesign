@@ -5,6 +5,7 @@ import Simulator.Function;
 import Simulator.Record.ContainerRecord;
 import Simulator.Record.InvokeResultPerMinute;
 import Simulator.Record.InvokeResultRecord;
+import Simulator.Record.MemPerMinRecord;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
@@ -28,6 +29,11 @@ public class CSVUtil {
     }
 
 
+    /**
+     * 从csv中读取函数信息，若参数为true则不生成调用列表(由python脚本负责生成调用list)
+     * 只生成Function相关信息
+     * @param generateMapOnly 是否只生成函数map
+     */
     public void ReadData(boolean generateMapOnly){
         int iCount = 0;
         int fCount = 0;
@@ -107,12 +113,21 @@ public class CSVUtil {
 
     }
 
+    /**
+     * 将数据发送给simulator
+     * @param simulator
+     */
     public void sendDataToSimulator(ContainerScheduler simulator){
         simulator.setNameToFunctionMap(this.getNameToFunctionMap());
         simulator.setHighCostFunctionNameList(this.highCostFunctionNameList);
     }
 
 
+    /**
+     * 将最基本的模拟记录写到csv中，记录的是每个函数的warm，cold，drop调用次数
+     * @param resPath 结果路径
+     * @param resMap 结果map
+     */
     public static void writeSimulationResults(String resPath, Map<String, InvokeResultRecord> resMap){
         int coldTotalTime = 0;
         int warmTotalTime = 0;
@@ -145,6 +160,11 @@ public class CSVUtil {
         }
     }
 
+    /**
+     * 将container的记录写到csv中，记录的是每个分钟container 被evict或ttl的次数
+     * @param resPath 结果路径
+     * @param resMap 结果map
+     */
     public static void writeContainerRecords(String resPath, Map<Integer, ContainerRecord> resMap){
         File file = new File(resPath);
         if(file.exists()){
@@ -163,6 +183,11 @@ public class CSVUtil {
         }
     }
 
+    /**
+     * 将高频函数与总和每分钟的模拟记录写到csv中，记录的是每分钟的warm，cold，ttldrop和queue full drop的次数
+     * @param resPath 结果路径
+     * @param resMap 结果map
+     */
     public static void writeSimulationResultsPerMinute(String resPath, Map<String, InvokeResultPerMinute> resMap){
         File file = new File(resPath);
         if(file.exists()){
@@ -205,6 +230,50 @@ public class CSVUtil {
                 printer.printRecord(record4);
             }
 
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 将每分钟高频函数的内存占用写进csv，包含平均值，最大值，最小值
+     * @param resPath 结果路径
+     * @param resMap 结果map
+     */
+    public static void writeMemRecordPerMin(String resPath, Map<String, MemPerMinRecord> resMap){
+        File file = new File(resPath);
+        if(file.exists()){
+            file.delete();
+        }
+        List<String> headerList = new ArrayList<>();
+        headerList.add("name");
+        headerList.add("value");
+        for (int i = 0; i < 1440; i++) {
+            headerList.add(String.valueOf(i));
+        }
+        try(BufferedWriter bw = new BufferedWriter(new FileWriter(resPath))){
+            CSVPrinter printer = new CSVPrinter(bw,CSVFormat.DEFAULT.withHeader(headerList.toArray(new String[0])));
+            for (String name :resMap.keySet()) {
+                MemPerMinRecord mr = resMap.get(name);
+                List<String> record1 = new ArrayList<>();
+                List<String> record2 = new ArrayList<>();
+                List<String> record3 = new ArrayList<>();
+                record1.add(name);
+                record1.add("Average");
+                record1.addAll(mr.getAverageList().stream().map(String::valueOf).collect(Collectors.toList()));
+                printer.printRecord(record1);
+
+                record2.add(name);
+                record2.add("Max");
+                record2.addAll(mr.getMaxList().stream().map(String::valueOf).collect(Collectors.toList()));
+                printer.printRecord(record2);
+
+                record3.add(name);
+                record3.add("Min");
+                record3.addAll(mr.getMinList().stream().map(String::valueOf).collect(Collectors.toList()));
+                printer.printRecord(record3);
+            }
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -11,7 +11,7 @@ public class MemoryBlock {
     String functionNameForThisBlock = null;
 
     public static int maxQueueLength = 100000;// a queue can contain at most 100,000 messages
-    public static int messageTTL = 100; //the longest time a message can unit: ms
+    public static int messageTTL = 10; //the longest time a message can unit: ms
 
     private List<Container> containerPool = new ArrayList<>();
     private Queue<FunctionInvoke> messageQueue = new LinkedList<>();

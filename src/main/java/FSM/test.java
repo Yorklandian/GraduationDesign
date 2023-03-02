@@ -9,8 +9,8 @@ public class test {
 
 
     public static void main(String[] args) {
-        //test();
-        simulateMultipleTimes();
+        test();
+        //simulateMultipleTimes();
     }
 
     public static void test(){
@@ -21,16 +21,20 @@ public class test {
         String repInvokeResPath = "D:\\data\\representative\\results\\invokeRes.csv";
         String repContainerResPath = "D:\\data\\representative\\results\\container.csv";
         String perMinResPath = "D:\\data\\representative\\results\\perMinute.csv";
+        String memPath = "D:\\data\\representative\\results\\mem.csv";
 
         int memCapacity = 32 * 1024; //内存池空间 单位：Mb
         CSVUtil util = new CSVUtil(representativeFuncPath,representativeIntermediatePath);
 
 
-        ContainerScheduler scheduler = new ContainerScheduler(memCapacity, Policy.DSMP,representativeInvokePath,repInvokeResPath,repContainerResPath,perMinResPath, (int) (memCapacity * 0.7));
+        ContainerScheduler scheduler = new ContainerScheduler(memCapacity, Policy.DSMP,
+                representativeInvokePath,repInvokeResPath,
+                repContainerResPath,perMinResPath,
+                memPath,(int) (memCapacity * 0.7));
         util.ReadData(true);
         util.sendDataToSimulator(scheduler);
 
-        scheduler.doMainLoop(60);
+        scheduler.doMainLoop(1440);
 
 
     }
@@ -45,13 +49,14 @@ public class test {
         String repInvokeResPath = "\\invokeRes";
         String repContainerResPath = "\\container";
         String perMinResPath = "\\perMinute";
+        String memPath = "\\mem";
 
         CSVUtil util = new CSVUtil(representativeFuncPath,representativeIntermediatePath);
         util.ReadData(true);
 
-        int[] ints = {8,16,24,32,48};
+        int[] ints = {4,8,16,24,32,34,36,38,40,42,44,46,48};
         Policy[] policies = {Policy.LRU,Policy.SSMP,Policy.DSMP};
-        int[] waitTimes = {100,1000,10000};
+        int[] waitTimes = {10};
         for (int waitTime :waitTimes) {
             for (Policy policy :policies) {
                 for (int i : ints) {
@@ -65,6 +70,7 @@ public class test {
                             preFixPath + repInvokeResPath + i + "G.csv",
                             preFixPath + repContainerResPath + i + "G.csv",
                             preFixPath +perMinResPath + i + "G.csv",
+                            preFixPath + memPath + i + "G.csv",
                             (int) (memCapacity * 0.7));
                     util.sendDataToSimulator(scheduler);
 
@@ -72,6 +78,7 @@ public class test {
 
                 }
                 System.out.println("\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\");
+                System.out.println();
             }
             System.out.println("----------------------------------------");
             System.out.println();

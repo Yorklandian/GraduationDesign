@@ -10,6 +10,7 @@ public class Function {
     private int score;
     private String appName;
     private String name;
+    private int containerNum = 0;
 
 
     public Function(int memSize, int coldRunTime, int warmRunTime, String name, String appName, int invocationCount) {
@@ -20,6 +21,17 @@ public class Function {
         this.appName = appName;
         this.invocationCount = invocationCount;
         this.score = invocationCount * memSize;
+    }
+
+    public void increaseContainerNum(){
+        this.containerNum++;
+    }
+
+    public void decreaseContainerNum(){
+        this.containerNum--;
+        if (containerNum < 0){
+            containerNum = 0;
+        }
     }
 
     public String getName() {
@@ -76,5 +88,13 @@ public class Function {
 
     public void setScore(int score) {
         this.score = score;
+    }
+
+    public int getContainerNum() {
+        return containerNum;
+    }
+
+    public void setContainerNum(int containerNum) {
+        this.containerNum = containerNum;
     }
 }
