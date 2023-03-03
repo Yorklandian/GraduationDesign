@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from multiprocessing import Pool
 from math import ceil
+pd.set_option('display.max_rows',1000)
 
 func_path = "D:\\data\\representative\\functions.csv"
 invoke_path = "D:\\data\\representative\\invokes.csv"
@@ -107,5 +108,8 @@ def gen_traces(func_nums):
 # gen_traces(400)
 
 df = pd.read_csv(func_path)
-generate_invoke_df(df)
+df["InvocationSum"] = df.iloc[:,5:1445].sum(axis=1)
+#print(df["Count"])
+#print(df["InvocationSum"])
+# generate_invoke_df(df)
 

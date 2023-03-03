@@ -59,8 +59,8 @@ public class MemPerMinRecord {
     }
 
     private int getAverage(){
-        int sum = memPerMilliList.stream().mapToInt(Integer::intValue).sum();
-        return  sum/memPerMilliList.size();
+        long sum = memPerMilliList.stream().mapToLong(Integer::intValue).sum();
+        return (int) (sum/memPerMilliList.size());
     }
 
     private int getMax(){

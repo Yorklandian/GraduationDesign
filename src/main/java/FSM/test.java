@@ -9,8 +9,8 @@ public class test {
 
 
     public static void main(String[] args) {
-        test();
-        //simulateMultipleTimes();
+        //test();
+        simulateMultipleTimes();
     }
 
     public static void test(){
@@ -54,7 +54,7 @@ public class test {
         CSVUtil util = new CSVUtil(representativeFuncPath,representativeIntermediatePath);
         util.ReadData(true);
 
-        int[] ints = {4,8,16,24,32,34,36,38,40,42,44,46,48};
+        int[] ints = {4/*,8,16,24,32,34,36,38,40,42,44,46,48*/};
         Policy[] policies = {Policy.LRU,Policy.SSMP,Policy.DSMP};
         int[] waitTimes = {10};
         for (int waitTime :waitTimes) {
