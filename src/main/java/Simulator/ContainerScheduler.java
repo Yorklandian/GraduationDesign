@@ -198,6 +198,11 @@ public class ContainerScheduler {
 
                 currentTime++;
             }
+            //将container num置0，用于连续的下次模拟
+            for (String name :nameToFunctionMap.keySet()) {
+                nameToFunctionMap.get(name).setContainerNum(0);
+            }
+
             System.out.println();
         } catch (IOException e) {
             e.printStackTrace();
@@ -319,7 +324,7 @@ public class ContainerScheduler {
                 containerPool.add(container);
                 container.update_initRun(time);
                 memoryBlock.increaseMemUsed(memNeeded);
-                container.getFunction().increaseContainerNum();
+                function.increaseContainerNum();
                 recordInvoke(functionName, InvokeStatus.Cold, time);
                 res = true;
             } else { //内存不足,evict或drop
@@ -338,7 +343,7 @@ public class ContainerScheduler {
                         containerPool.add(container);
                         container.update_initRun(time);
                         memoryBlock.increaseMemUsed(memNeeded);
-                        container.getFunction().increaseContainerNum();
+                        function.increaseContainerNum();
                         recordInvoke(functionName, InvokeStatus.Cold, time);
                         res = true;
                     } else {

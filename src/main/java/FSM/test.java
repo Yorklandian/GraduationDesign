@@ -23,7 +23,7 @@ public class test {
         String perMinResPath = "D:\\data\\representative\\results\\perMinute.csv";
         String memPath = "D:\\data\\representative\\results\\mem.csv";
 
-        int memCapacity = 32 * 1024; //内存池空间 单位：Mb
+        int memCapacity = 48 * 1024; //内存池空间 单位：Mb
         CSVUtil util = new CSVUtil(representativeFuncPath,representativeIntermediatePath);
 
 
@@ -51,10 +51,8 @@ public class test {
         String perMinResPath = "\\perMinute";
         String memPath = "\\mem";
 
-        CSVUtil util = new CSVUtil(representativeFuncPath,representativeIntermediatePath);
-        util.ReadData(true);
 
-        int[] ints = {4/*,8,16,24,32,34,36,38,40,42,44,46,48*/};
+        int[] ints = {4,8,16,24,32,34,36,38,40,42,44,46,48};
         Policy[] policies = {Policy.LRU,Policy.SSMP,Policy.DSMP};
         int[] waitTimes = {10};
         for (int waitTime :waitTimes) {
@@ -66,6 +64,10 @@ public class test {
                     int memCapacity = i * 1024; //内存池空间 单位：Mb
                     MemoryBlock.messageTTL = waitTime;
                     String preFixPath = dirPath + waitTime + "ms\\" + policy.toString();
+
+                    CSVUtil util = new CSVUtil(representativeFuncPath,representativeIntermediatePath);
+                    util.ReadData(true);
+
                     ContainerScheduler scheduler = new ContainerScheduler(memCapacity, policy,representativeInvokePath,
                             preFixPath + repInvokeResPath + i + "G.csv",
                             preFixPath + repContainerResPath + i + "G.csv",
@@ -74,7 +76,7 @@ public class test {
                             (int) (memCapacity * 0.7));
                     util.sendDataToSimulator(scheduler);
 
-                    scheduler.doMainLoop(1440);
+                    scheduler.doMainLoop(10);
 
                 }
                 System.out.println("\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\");

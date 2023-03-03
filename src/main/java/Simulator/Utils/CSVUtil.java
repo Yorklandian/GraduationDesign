@@ -100,10 +100,10 @@ public class CSVUtil {
                 return score2 - score1;
 
             }));
-            System.out.println("high cost func num: " + highCostFunctionNameList.size());
+            /*System.out.println("high cost func num: " + highCostFunctionNameList.size());
             for (String name : highCostFunctionNameList) {
                 System.out.println("high cost func name: " + name);
-            }
+            }*/
             printer.close();
 
 
