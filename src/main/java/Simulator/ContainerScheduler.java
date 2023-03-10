@@ -30,6 +30,7 @@ public class ContainerScheduler {
     private String containerResPath;
     private String perMinuteRecordPath;
     private String memUsedPerMinRecordPath;
+    private String predictionPath;
 
     // store info about functions
     private Map<String, Function> nameToFunctionMap = new HashMap<>();
@@ -52,16 +53,17 @@ public class ContainerScheduler {
     public ContainerScheduler(int memCapacity, Policy policy,
                               String invokeRecordsPath, String invokeResPath,
                               String containerResPath, String perMinuteRecordPath,
-                              String memUsedPerMinRecordPath, int maxSepMemBlockCapacity) {
+                              String memUsedPerMinRecordPath, String predictionPath,
+                              int maxSepMemBlockCapacity) {
         this.mainMemBlock = new MemoryBlock(memCapacity);
         this.policy = policy;
         this.invokeRecordsPath = invokeRecordsPath;
         this.invokeResPath = invokeResPath;
         this.containerResPath = containerResPath;
         this.perMinuteRecordPath = perMinuteRecordPath;
-        this.maxSepMemBlockCapacity = maxSepMemBlockCapacity;
         this.memUsedPerMinRecordPath = memUsedPerMinRecordPath;
-
+        this.predictionPath = predictionPath;
+        this.maxSepMemBlockCapacity = maxSepMemBlockCapacity;
     }
 
 
