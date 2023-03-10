@@ -33,7 +33,7 @@ public class test {
                 repContainerResPath,perMinResPath,
                 memPath,predictionPath,
                 (int) (memCapacity * 0.7));
-        util.ReadData(true);
+        util.readData(true);
         util.sendDataToSimulator(scheduler);
 
         scheduler.doMainLoop(1440);
@@ -69,7 +69,7 @@ public class test {
                     String preFixPath = dirPath + waitTime + "ms\\" + policy.toString();
 
                     CSVUtil util = new CSVUtil(representativeFuncPath,representativeIntermediatePath);
-                    util.ReadData(true);
+                    util.readData(true);
 
                     ContainerScheduler scheduler = new ContainerScheduler(memCapacity, policy,representativeInvokePath,
                             preFixPath + repInvokeResPath + i + "G.csv",

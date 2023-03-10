@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
 
-public class MemPerMinRecord {
+public class PerMinMemRecord {
     private String name;
 
     //保存每分钟的内存占用平均值
@@ -16,7 +16,7 @@ public class MemPerMinRecord {
     //保存一分钟内每毫秒的内存占用，每分钟计算后赋值给上面三个list
     private List<Integer> memPerMilliList = new ArrayList<>();
 
-    public MemPerMinRecord(String name){
+    public PerMinMemRecord(String name){
         this.name = name;
         for(int i = 0; i < 1440+10; i++){
             averageList.add(0);

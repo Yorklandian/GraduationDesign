@@ -3,7 +3,7 @@ package Simulator.Record;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InvokeResultPerMinute {
+public class PerMinInvokeRecord {
     public String name;
     public List<Integer> warmList = new ArrayList<>();
     public List<Integer> coldList = new ArrayList<>();
@@ -30,7 +30,7 @@ public class InvokeResultPerMinute {
         ttlList.set(index, old + 1);
     }
 
-    public InvokeResultPerMinute(String name) {
+    public PerMinInvokeRecord(String name) {
         this.name = name;
         for (int i = 0; i < 1440 + 10; i++) {
             warmList.add(0);

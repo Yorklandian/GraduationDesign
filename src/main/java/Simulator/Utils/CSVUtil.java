@@ -1,11 +1,12 @@
 package Simulator.Utils;
 
 import Simulator.ContainerScheduler;
+import Simulator.Enums.Policy;
 import Simulator.Function;
 import Simulator.Record.ContainerRecord;
-import Simulator.Record.InvokeResultPerMinute;
+import Simulator.Record.PerMinInvokeRecord;
 import Simulator.Record.InvokeResultRecord;
-import Simulator.Record.MemPerMinRecord;
+import Simulator.Record.PerMinMemRecord;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
@@ -18,23 +19,31 @@ import java.util.stream.Collectors;
 public class CSVUtil {
     private String dataPath;
     private String intermediateRecordPath;
+    private String predictionPath;
 
 
     private Map<String,Function> nameToFunctionMap = new HashMap<>();
     private List<String> highCostFunctionNameList = new ArrayList<>();
+    private Map<String,List<Integer>> highCostFunctionPredictions = new HashMap<>();
 
-    public CSVUtil(String dataPath, String intermediateRecordPath) {
+    public CSVUtil(String dataPath, String intermediateRecordPath, String predictionPath) {
         this.dataPath = dataPath;
         this.intermediateRecordPath = intermediateRecordPath;
+        this.predictionPath = predictionPath;
     }
 
+    public void clear(){
+        this.highCostFunctionPredictions.clear();
+        this.highCostFunctionNameList.clear();
+        this.nameToFunctionMap.clear();
+    }
 
     /**
      * 从csv中读取函数信息，若参数为true则不生成调用列表(由python脚本负责生成调用list)
      * 只生成Function相关信息
      * @param generateMapOnly 是否只生成函数map
      */
-    public void ReadData(boolean generateMapOnly){
+    public void readData(boolean generateMapOnly){
         int iCount = 0;
         int fCount = 0;
         try(BufferedReader br = new BufferedReader(new FileReader(this.dataPath));
@@ -115,11 +124,41 @@ public class CSVUtil {
 
     /**
      * 将数据发送给simulator
-     * @param simulator
+     * @param simulator 模拟器
      */
     public void sendDataToSimulator(ContainerScheduler simulator){
         simulator.setNameToFunctionMap(this.getNameToFunctionMap());
         simulator.setHighCostFunctionNameList(this.highCostFunctionNameList);
+        if(simulator.getPolicy() == Policy.DSMP){
+            simulator.setPredictionData(this.readPredictionData(this.predictionPath));
+        }
+    }
+
+    /**
+     * 读取预测数据
+     * @param predictionPath 预测数据存储路径
+     * @return 预测数据map
+     */
+    public Map<String,List<Integer>> readPredictionData(String predictionPath){
+        Map<String,List<Integer>> predictions = new HashMap<>();
+        try(BufferedReader br = new BufferedReader(new FileReader(predictionPath))) {
+            CSVParser parser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(br);
+
+            //遍历所有record
+            for (CSVRecord record : parser) {
+                String hashFunc = record.get("HashFunction");
+                List<Integer> prediction = new ArrayList<>();
+                for (int i = 1; i <= 1440; i++) {
+                    int count = (int) Float.parseFloat(record.get(i+""));
+                    prediction.add(count);
+                }
+                predictions.put(hashFunc,prediction);
+
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return predictions;
     }
 
 
@@ -188,7 +227,7 @@ public class CSVUtil {
      * @param resPath 结果路径
      * @param resMap 结果map
      */
-    public static void writeSimulationResultsPerMinute(String resPath, Map<String, InvokeResultPerMinute> resMap){
+    public static void writeSimulationResultsPerMinute(String resPath, Map<String, PerMinInvokeRecord> resMap){
         File file = new File(resPath);
         if(file.exists()){
             file.delete();
@@ -202,7 +241,7 @@ public class CSVUtil {
         try(BufferedWriter bw = new BufferedWriter(new FileWriter(resPath))){
             CSVPrinter printer = new CSVPrinter(bw,CSVFormat.DEFAULT.withHeader(headerList.toArray(new String[0])));
             for (String name :resMap.keySet()) {
-                InvokeResultPerMinute ir = resMap.get(name);
+                PerMinInvokeRecord ir = resMap.get(name);
                 List<String> record1 = new ArrayList<>();
                 List<String> record2 = new ArrayList<>();
                 List<String> record3 = new ArrayList<>();
@@ -241,7 +280,7 @@ public class CSVUtil {
      * @param resPath 结果路径
      * @param resMap 结果map
      */
-    public static void writeMemRecordPerMin(String resPath, Map<String, MemPerMinRecord> resMap){
+    public static void writeMemRecordPerMin(String resPath, Map<String, PerMinMemRecord> resMap){
         File file = new File(resPath);
         if(file.exists()){
             file.delete();
@@ -255,7 +294,7 @@ public class CSVUtil {
         try(BufferedWriter bw = new BufferedWriter(new FileWriter(resPath))){
             CSVPrinter printer = new CSVPrinter(bw,CSVFormat.DEFAULT.withHeader(headerList.toArray(new String[0])));
             for (String name :resMap.keySet()) {
-                MemPerMinRecord mr = resMap.get(name);
+                PerMinMemRecord mr = resMap.get(name);
                 List<String> record1 = new ArrayList<>();
                 List<String> record2 = new ArrayList<>();
                 List<String> record3 = new ArrayList<>();
