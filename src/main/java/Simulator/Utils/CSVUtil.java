@@ -148,6 +148,7 @@ public class CSVUtil {
             for (CSVRecord record : parser) {
                 String hashFunc = record.get("HashFunction");
                 List<Integer> prediction = new ArrayList<>();
+                //读取时时1-1440，使用时为0-1439
                 for (int i = 1; i <= 1440; i++) {
                     int count = (int) Float.parseFloat(record.get(i+""));
                     prediction.add(count);

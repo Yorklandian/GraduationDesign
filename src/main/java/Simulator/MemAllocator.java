@@ -17,6 +17,7 @@ public class MemAllocator {
     //独立内存块
     private Map<String,MemoryBlock> seperatedMemBlocksMap = new HashMap<>();
     private int maxSepMemBlockCapacity;
+    private int sepMemLeft;
 
 
     private Map<String, Function> nameToFunctionMap;
@@ -29,6 +30,8 @@ public class MemAllocator {
         this.predictionData = scheduler.getPredictionData();
         this.nameToFunctionMap = scheduler.getNameToFunctionMap();
         this.maxSepMemBlockCapacity = scheduler.getMaxSepMemBlockCapacity();
+
+        this.sepMemLeft = this.maxSepMemBlockCapacity;
     }
 
 
@@ -99,6 +102,9 @@ public class MemAllocator {
      * @param minute 当前是第几分钟
      */
     public void dynamicScale(int minute){
+        if(minute >= 1440){
+            return;
+        }
         Map<String, Integer> nameToMemChanges = new HashMap<>();
         for (String name : predictionData.keySet()) {
             Function func = nameToFunctionMap.get(name);
@@ -119,7 +125,7 @@ public class MemAllocator {
         List<Map.Entry<String,Integer>> list = new ArrayList<>(nameToMemChanges.entrySet());
         list.sort(Map.Entry.comparingByValue());
 
-        int sepMemLeft = maxSepMemBlockCapacity;
+        int sepMemLeft = this.sepMemLeft;
 
         //对所有独立空间进行分配
         for(String name : nameToMemChanges.keySet()) {

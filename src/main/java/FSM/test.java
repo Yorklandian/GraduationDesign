@@ -25,14 +25,13 @@ public class test {
         String predictionPath = "D:\\data\\representative\\prediction_results\\predictions.csv";
 
         int memCapacity = 48 * 1024; //内存池空间 单位：Mb
-        CSVUtil util = new CSVUtil(representativeFuncPath,representativeIntermediatePath);
+        CSVUtil util = new CSVUtil(representativeFuncPath,representativeIntermediatePath,predictionPath);
 
 
         ContainerScheduler scheduler = new ContainerScheduler(memCapacity, Policy.DSMP,
                 representativeInvokePath,repInvokeResPath,
                 repContainerResPath,perMinResPath,
-                memPath,predictionPath,
-                (int) (memCapacity * 0.7));
+                memPath, (int) (memCapacity * 0.7));
         util.readData(true);
         util.sendDataToSimulator(scheduler);
 
@@ -68,7 +67,7 @@ public class test {
                     MemoryBlock.messageTTL = waitTime;
                     String preFixPath = dirPath + waitTime + "ms\\" + policy.toString();
 
-                    CSVUtil util = new CSVUtil(representativeFuncPath,representativeIntermediatePath);
+                    CSVUtil util = new CSVUtil(representativeFuncPath,representativeIntermediatePath,predictionPath);
                     util.readData(true);
 
                     ContainerScheduler scheduler = new ContainerScheduler(memCapacity, policy,representativeInvokePath,
@@ -76,7 +75,6 @@ public class test {
                             preFixPath + repContainerResPath + i + "G.csv",
                             preFixPath +perMinResPath + i + "G.csv",
                             preFixPath + memPath + i + "G.csv",
-                             predictionPath,
                             (int) (memCapacity * 0.7));
                     util.sendDataToSimulator(scheduler);
 

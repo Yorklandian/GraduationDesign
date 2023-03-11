@@ -19,11 +19,9 @@ public class ContainerScheduler {
     private Policy policy;
 
     MemAllocator allocator;
-    //主内存块
+    //主内存块大小
     private int memCapacity;
-    /*private MemoryBlock mainMemBlock;
-    //独立内存块
-    private Map<String,MemoryBlock> seperatedMemBlocksMap = new HashMap<>();*/
+    //可用于独立空间分配的最大大小
     private int maxSepMemBlockCapacity;
 
     // data paths
@@ -56,7 +54,7 @@ public class ContainerScheduler {
     public ContainerScheduler(int memCapacity, Policy policy,
                               String invokeRecordsPath, String invokeResPath,
                               String containerResPath, String perMinuteRecordPath,
-                              String memUsedPerMinRecordPath, String predictionPath,
+                              String memUsedPerMinRecordPath,
                               int maxSepMemBlockCapacity) {
         this.memCapacity = memCapacity;
         this.policy = policy;
@@ -68,7 +66,6 @@ public class ContainerScheduler {
         this.memUsedPerMinRecordPath = memUsedPerMinRecordPath;
 
         this.maxSepMemBlockCapacity = maxSepMemBlockCapacity;
-        this.allocator = new MemAllocator(this);
     }
 
 
@@ -87,7 +84,9 @@ public class ContainerScheduler {
         int endTime = (minutesToSimulate) * secondsAMinus * millisASec + MemoryBlock.messageTTL;
         int keepAliveTime = 10 * secondsAMinus * millisASec; //10min
 
+        //初始化操作
         initRecords();
+        this.allocator = new MemAllocator(this);
         allocator.initAllocator(policy);
 
 
@@ -103,12 +102,17 @@ public class ContainerScheduler {
             //时间循环
             int currentMinute = 0;
             while (currentTime <= endTime) {
+                //每分钟初进行的操作
                 if(currentTime % 60000 == 0){
                     currentMinute = currentTime/60000;
+                    System.out.print("time: " + currentMinute + "th minute\r");
+
                     this.currentContainerRecord = new ContainerRecord();
                     containerRecordMap.put(currentMinute,this.currentContainerRecord);
-
-                    System.out.print("time: " + currentMinute + "th minute\r");
+                    //采用动态策略时每分钟初变化大小
+                    if(policy == Policy.DSMP){
+                        allocator.dynamicScale(currentMinute);
+                    }
                 }
 
 
@@ -474,7 +478,7 @@ public class ContainerScheduler {
     }
 
     /**
-     * 采用LRU策略时的初始化函数
+     * 对recorder进行初始化
      */
     private void initRecords(){
         highCostMemPerMinRecordMap.put(ALL_NAME,new PerMinMemRecord(ALL_NAME));

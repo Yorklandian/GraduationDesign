@@ -32,7 +32,7 @@ public class PerMinInvokeRecord {
 
     public PerMinInvokeRecord(String name) {
         this.name = name;
-        for (int i = 0; i < 1440 + 10; i++) {
+        for (int i = 0; i < 1440; i++) {
             warmList.add(0);
             coldList.add(0);
             queueFullList.add(0);

@@ -76,8 +76,8 @@ if has_csv_data == False:
 
 columns = []
 columns.append("HashFunction")
-for i in range(1440): columns.append(i)
-    
+for i in range(1,1441): columns.append(i)
+
 predictions = pd.DataFrame(columns=columns)
 for func_name in high_cost_function_names:
     if has_csv_data == True:
@@ -92,22 +92,22 @@ for func_name in high_cost_function_names:
 
     # 使用模型预测第13天中每分钟的数据
     forecast = model.predict(future)
-    
+
     #存储预测结果
     forecast_res = forecast[['ds','yhat','yhat_lower','yhat_upper']]
     forecast_res['yhat'] = forecast_res['yhat'].astype(int)
     forecast_res['yhat_lower'] = forecast_res['yhat_lower'].astype(int)
     forecast_res['yhat_upper'] = forecast_res['yhat_upper'].astype(int)
     forecast_res.to_csv(os.path.join(prediction_res_path, func_name+'.csv'))
-    
+
     yhat_data:list = forecast_res["yhat"].values.tolist()
     for i in range(len(yhat_data)):
         if yhat_data[i] < 0:
             yhat_data[i] = 0
     yhat_data.insert(0,func_name)
-    
-    predictions = predictions.append(pd.DataFrame([yhat_data]),ignore_index = True)
-    
+    predictions.loc[len(predictions)] = yhat_data
+    #predictions = predictions.append(pd.DataFrame([yhat_data]),ignore_index = True)
+
     # 打印预测结果
     #print(forecast[['ds', 'yhat']].tail())
 
@@ -115,7 +115,7 @@ for func_name in high_cost_function_names:
     ax.set_title(func_name)
     model.plot(forecast, ax=ax)
 
-predictions.to_csv(os.path.join(prediction_res_path, "predictions.csv"))
+predictions.to_csv(os.path.join(prediction_res_path, "predictions.csv"),index=0)
 
 # 显示图表
 plt.show()

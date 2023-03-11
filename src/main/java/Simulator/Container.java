@@ -52,7 +52,7 @@ public class Container {
 
 
     public boolean isFree(){
-        return this.state != Running;
+        return this.state == Warm ;
     }
 
     public boolean isWarm(){

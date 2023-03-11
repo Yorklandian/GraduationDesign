@@ -18,7 +18,7 @@ public class PerMinMemRecord {
 
     public PerMinMemRecord(String name){
         this.name = name;
-        for(int i = 0; i < 1440+10; i++){
+        for(int i = 0; i < 1440; i++){
             averageList.add(0);
             maxList.add(0);
             minList.add(0);
