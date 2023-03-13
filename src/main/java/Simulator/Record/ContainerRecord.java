@@ -1,5 +1,8 @@
 package Simulator.Record;
 
+/**
+ * 容器纪录类，记录每分钟被驱逐以及自动死亡的容器数
+ */
 public class ContainerRecord {
     private int minute = 0;
     private int autoDieCount = 0;

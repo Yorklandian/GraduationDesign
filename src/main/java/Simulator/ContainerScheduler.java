@@ -75,7 +75,7 @@ public class ContainerScheduler {
      * 同时每个时间循环内对container状态进行更新处理
      * 循环结束后记录每个function的调用结果
      */
-    public void doMainLoop(int minutesToSimulate) {
+    public void doMainLoop(int minutesToSimulate, boolean simpleAllocate) {
         final int minutesADay = 1440;
         final int secondsAMinus = 60;
         final int millisASec = 1000;
@@ -87,7 +87,7 @@ public class ContainerScheduler {
         //初始化操作
         initRecords();
         this.allocator = new MemAllocator(this);
-        allocator.initAllocator(policy);
+        allocator.initAllocator(policy, simpleAllocate);
 
 
 

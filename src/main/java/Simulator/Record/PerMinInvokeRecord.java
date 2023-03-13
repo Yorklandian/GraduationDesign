@@ -3,6 +3,10 @@ package Simulator.Record;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 每分钟调用记录类，记录某函数1440分钟每分钟热启动，冷启动以及drop的次数
+ *
+ */
 public class PerMinInvokeRecord {
     public String name;
     public List<Integer> warmList = new ArrayList<>();

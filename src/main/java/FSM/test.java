@@ -34,8 +34,8 @@ public class test {
                 memPath, (int) (memCapacity * 0.7));
         util.readData(true);
         util.sendDataToSimulator(scheduler);
-
-        scheduler.doMainLoop(1440);
+        boolean simpleAllocate = true;
+        scheduler.doMainLoop(1440, simpleAllocate);
 
 
     }
@@ -54,7 +54,8 @@ public class test {
 
         String predictionPath = "D:\\data\\representative\\prediction_results\\predictions.csv";
 
-        int[] ints = {4,8,16,24,32,34,36,38,40,42,44,46,48};
+        //int[] ints = {4,8,16,24,32,34,36,38,40,42,44,46,48};
+        int[] ints = {8,16,24,32,40,48};
         Policy[] policies = {Policy.LRU,Policy.SSMP,Policy.DSMP};
         int[] waitTimes = {10};
         for (int waitTime :waitTimes) {
@@ -77,8 +78,8 @@ public class test {
                             preFixPath + memPath + i + "G.csv",
                             (int) (memCapacity * 0.7));
                     util.sendDataToSimulator(scheduler);
-
-                    scheduler.doMainLoop(10);
+                    boolean simpleAllocate = true;
+                    scheduler.doMainLoop(1440, simpleAllocate);
 
                 }
                 System.out.println("\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\");

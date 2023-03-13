@@ -41,7 +41,7 @@ public class MemAllocator {
      * 动态时会按照预测数据第一分钟的值进行分配
      * @param policy 采取的策略
      */
-    public void initAllocator(Policy policy){
+    public void initAllocator(Policy policy, boolean simple){
         int sepMemLeft = maxSepMemBlockCapacity;
         int size = this.highCostFunctionNameList.size();
         for(int i = 0; i < size; i++) {
@@ -53,11 +53,16 @@ public class MemAllocator {
             int minutes = 0;
             switch (policy){
                 case SSMP:
-                    //静态分配初始化时按照总调用次数的平均值来进行计算
-                    int invokePerMinute = invokeCount/1440;
-                    int totalDurationPerMinute = invokePerMinute * duration;
-                    //一分钟调用的总耗时可以划分为几分钟,可划分为几分钟就给他分配几倍的空间,这样平均下来每分钟都会有完整占用的调用
-                    minutes  = totalDurationPerMinute/60000 + 1;
+                    //如果只做简单分配，只分配两块
+                    if(simple){
+                        minutes = 2;
+                    } else {
+                        //静态分配初始化时按照总调用次数的平均值来进行计算
+                        int invokePerMinute = invokeCount/1440;
+                        int totalDurationPerMinute = invokePerMinute * duration;
+                        //一分钟调用的总耗时可以划分为几分钟,可划分为几分钟就给他分配几倍的空间,这样平均下来每分钟都会有完整占用的调用
+                        minutes  = totalDurationPerMinute/60000 + 1;
+                    }
                     break;
                 case DSMP:
                     //动态分配初始化时按照第一分钟的预测数据进行分配

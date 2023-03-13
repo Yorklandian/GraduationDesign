@@ -181,10 +181,10 @@ public class CSVUtil {
             CSVPrinter printer = new CSVPrinter(bw,CSVFormat.DEFAULT.withHeader("name","warm","cold","queue full drop","ttl drop"));
             for (String name :resMap.keySet()) {
                 InvokeResultRecord invokeResultRecord = resMap.get(name);
-                int warmCount = invokeResultRecord.getWarmStartTime();
-                int coldCount = invokeResultRecord.getColdStartTime();
-                int queueFullDropTime = invokeResultRecord.getQueueFullDropTime();
-                int ttlDropTime = invokeResultRecord.getTtlDropTime();
+                int warmCount = invokeResultRecord.getWarmStartCount();
+                int coldCount = invokeResultRecord.getColdStartCount();
+                int queueFullDropTime = invokeResultRecord.getQueueFullDropCount();
+                int ttlDropTime = invokeResultRecord.getTtlDropCount();
                 printer.printRecord(name,warmCount,coldCount,queueFullDropTime,ttlDropTime);
 
                 warmTotalTime += warmCount;

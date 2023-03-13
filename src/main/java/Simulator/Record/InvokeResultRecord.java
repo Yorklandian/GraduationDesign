@@ -1,54 +1,58 @@
 package Simulator.Record;
 
+/**
+ * 调用结果纪录类，记录热启动，冷启动以及drop的次数
+ * 配合函数名使用
+ */
 public class InvokeResultRecord {
-    private int warmStartTime = 0;
-    private int coldStartTime = 0;
-    private int queueFullDropTime = 0;
-    private int ttlDropTime = 0;
+    private int warmStartCount = 0;
+    private int coldStartCount = 0;
+    private int queueFullDropCount = 0;
+    private int ttlDropCount = 0;
 
 
     public void increaseWarmStartTime(){
-        this.warmStartTime++;
+        this.warmStartCount++;
     }
     public void increaseColdStartTime(){
-        this.coldStartTime++;
+        this.coldStartCount++;
     }
     public void increaseQueueDropTime(){
-        this.queueFullDropTime++;
+        this.queueFullDropCount++;
     }
     public void increaseTTLDropTime(){
-        this.ttlDropTime++;
+        this.ttlDropCount++;
     }
 
-    public int getWarmStartTime() {
-        return warmStartTime;
+    public int getWarmStartCount() {
+        return warmStartCount;
     }
 
-    public void setWarmStartTime(int warmStartTime) {
-        this.warmStartTime = warmStartTime;
+    public void setWarmStartCount(int warmStartCount) {
+        this.warmStartCount = warmStartCount;
     }
 
-    public int getColdStartTime() {
-        return coldStartTime;
+    public int getColdStartCount() {
+        return coldStartCount;
     }
 
-    public void setColdStartTime(int coldStartTime) {
-        this.coldStartTime = coldStartTime;
+    public void setColdStartCount(int coldStartCount) {
+        this.coldStartCount = coldStartCount;
     }
 
-    public int getQueueFullDropTime() {
-        return queueFullDropTime;
+    public int getQueueFullDropCount() {
+        return queueFullDropCount;
     }
 
-    public void setQueueFullDropTime(int queueFullDropTime) {
-        this.queueFullDropTime = queueFullDropTime;
+    public void setQueueFullDropCount(int queueFullDropCount) {
+        this.queueFullDropCount = queueFullDropCount;
     }
 
-    public int getTtlDropTime() {
-        return ttlDropTime;
+    public int getTtlDropCount() {
+        return ttlDropCount;
     }
 
-    public void setTtlDropTime(int ttlDropTime) {
-        this.ttlDropTime = ttlDropTime;
+    public void setTtlDropCount(int ttlDropCount) {
+        this.ttlDropCount = ttlDropCount;
     }
 }

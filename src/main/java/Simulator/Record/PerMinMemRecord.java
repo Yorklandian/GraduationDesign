@@ -4,16 +4,31 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
 
+/**
+ * 每分钟内存占用纪录类，记录某函数1440分钟每分钟内存占用
+ * 每毫秒进行记录并在每分钟莫计算内存占用的均值，最大值和最小值
+ */
 public class PerMinMemRecord {
+    /**
+     * 函数名，可以使用ALL代指所有函数
+     */
     private String name;
 
-    //保存每分钟的内存占用平均值
+    /**
+     * 保存每分钟的内存占用平均值
+     */
     private List<Integer> averageList = new ArrayList<>();
-    //保存每分钟的内存占用最大值
+    /**
+     * 保存每分钟的内存占用最大值
+     */
     private List<Integer> maxList = new ArrayList<>();
-    //保存每分钟的内存占用最小值
+    /**
+     * 保存每分钟的内存占用最大值
+     */
     private List<Integer> minList = new ArrayList<>();
-    //保存一分钟内每毫秒的内存占用，每分钟计算后赋值给上面三个list
+    /**
+     * 保存每分钟的内存占用最大值
+     */
     private List<Integer> memPerMilliList = new ArrayList<>();
 
     public PerMinMemRecord(String name){
@@ -28,6 +43,9 @@ public class PerMinMemRecord {
         }
     }
 
+    /**
+     * 清理纪毫秒级录列表，用于下一分钟记录
+     */
     private void clearMilliList(){
         memPerMilliList.clear();
         for (int i = 0; i < 60000; i++) {
