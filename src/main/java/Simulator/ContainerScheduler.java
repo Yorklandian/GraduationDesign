@@ -15,20 +15,43 @@ import java.util.stream.Collectors;
 public class ContainerScheduler {
     private static final String ALL_NAME = "All";
 
-    //mem allocate policy
+    /**
+     * 内存分配策略
+     */
     private Policy policy;
-
+    /**
+     * 内存分配器
+     */
     MemAllocator allocator;
-    //主内存块大小
+    /**
+     * 总内存块大小
+     */
     private int memCapacity;
-    //可用于独立空间分配的最大大小
+    /**
+     * 可用于独立空间分配的空间最大大小
+     */
     private int maxSepMemBlockCapacity;
 
     // data paths
+    /**
+     * 调用数据路径
+     */
     private String invokeRecordsPath;
+    /**
+     * 调用结果记录路径
+     */
     private String invokeResPath;
+    /**
+     * 容器结果记录路径
+     */
     private String containerResPath;
+    /**
+     * 每分钟调用结果记录路径
+     */
     private String perMinuteRecordPath;
+    /**
+     * 每分钟内存占用记录路径
+     */
     private String memUsedPerMinRecordPath;
 
 
@@ -38,16 +61,26 @@ public class ContainerScheduler {
     private Map<String, List<Integer>> predictionData = new HashMap<>();
 
     //store info about invoke records
-    //每个函数的调用记录
+    /**
+     * 每个函数的调用记录
+     */
     private Map<String, InvokeResultRecord> invokeResultRecordMap = new HashMap<>();
-    //每分钟容器evict，ttl记录
+    /**
+     * 每分钟容器evict，ttl记录
+     */
     private Map<Integer, ContainerRecord> containerRecordMap = new HashMap<>();
     private ContainerRecord currentContainerRecord;
-    //每分钟总的warm，cold，evict之和的记录
+    /**
+     * 每分钟总的warm，cold，evict之和的记录
+     */
     private PerMinInvokeRecord ALLPerMinInvokeRecord = new PerMinInvokeRecord(ALL_NAME);
-    //保存高cost函数每分钟warm，cold，evict的记录
+    /**
+     * 保存高cost函数每分钟warm，cold，evict的记录
+     */
     private Map<String, PerMinInvokeRecord> highCostPerMinInvokeRecordMap = new HashMap<>();
-    //保存高cost函数每分钟的内存占用情况
+    /**
+     * 保存高cost函数每分钟的内存占用情况
+     */
     private Map<String, PerMinMemRecord> highCostMemPerMinRecordMap = new HashMap<>();
 
 
@@ -70,10 +103,13 @@ public class ContainerScheduler {
 
 
 
+
     /**
      * 执行模拟循环,按照生成的调用记录进行模拟调用。并且记录各个函数的调用结果(warm/cold/drop)
      * 同时每个时间循环内对container状态进行更新处理
      * 循环结束后记录每个function的调用结果
+     * @param minutesToSimulate 模拟的时间
+     * @param simpleAllocate 是否进行简单分配，若是，则SSMP分配时只分配一块/两块
      */
     public void doMainLoop(int minutesToSimulate, boolean simpleAllocate) {
         final int minutesADay = 1440;
@@ -102,7 +138,7 @@ public class ContainerScheduler {
             //时间循环
             int currentMinute = 0;
             while (currentTime <= endTime) {
-                //每分钟初进行的操作
+                //1.每分钟初进行的操作
                 if(currentTime % 60000 == 0){
                     currentMinute = currentTime/60000;
                     System.out.print("time: " + currentMinute + "th minute\r");
@@ -116,7 +152,7 @@ public class ContainerScheduler {
                 }
 
 
-                //1.每时刻首先进行container处理
+                //2.每时刻首先进行container处理
                 containerPoolUpdate(allocator.getMainMemBlock(), currentTime ,keepAliveTime);
                 if(policy == Policy.DSMP || policy == Policy.SSMP){
                     for (String funcName: allocator.getSeperatedMemBlocksMap().keySet()) {
@@ -125,7 +161,7 @@ public class ContainerScheduler {
                     }
                 }
 
-                //2.接下来进行读取以及消息入队,仅入队本时刻的调用
+                //3.接下来进行读取以及消息入队,仅入队本时刻的调用
                 if(currentTime <= endTime - queueWaitTime  && currentTime == latestInvokeTime){
                     while (true) {
                         String str;
@@ -163,7 +199,7 @@ public class ContainerScheduler {
 
                 }
 
-                //3.接下来从消息队列中取出调用消息，进行处理
+                //4.接下来从消息队列中取出调用消息，进行处理
                 if(this.policy == Policy.DSMP || this.policy == Policy.SSMP){
                     //处理seperated blocks
                     for (MemoryBlock block: allocator.getSeperatedMemBlocksMap().values()) {
@@ -173,7 +209,7 @@ public class ContainerScheduler {
                 //处理main block
                 pollMessageAndInvoke(allocator.getMainMemBlock(),currentTime);
 
-                //4.记录每分钟内存的整体占用情况以及高频函数的内存占用情况
+                //5.记录每分钟内存的整体占用情况以及高频函数的内存占用情况
                 for (String name :highCostMemPerMinRecordMap.keySet()) {
                     //记录总体占用
                     if(Objects.equals(name, ALL_NAME)){
@@ -208,7 +244,7 @@ public class ContainerScheduler {
             e.printStackTrace();
         }
 
-        //5.记录所有调用结果与container移除数量表
+        //6.记录所有调用结果与container移除数量表
         CSVUtil.writeSimulationResults(this.invokeResPath,this.invokeResultRecordMap);
         //CSVUtil.writeContainerRecords(this.containerResPath,this.containerRecordMap);
 

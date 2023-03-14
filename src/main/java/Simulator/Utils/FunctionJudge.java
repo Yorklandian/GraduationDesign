@@ -4,6 +4,9 @@ import Simulator.Function;
 
 import java.util.List;
 
+/**
+ * 函数判断器，目前只用于找出高频高占用函数
+ */
 public class FunctionJudge {
     public static int memLimit = 100;
     public static int durationLimit = 0;

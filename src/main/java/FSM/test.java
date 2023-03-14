@@ -25,7 +25,7 @@ public class test {
         String predictionPath = "D:\\data\\representative\\prediction_results\\predictions.csv";
 
         int memCapacity = 48 * 1024; //内存池空间 单位：Mb
-        CSVUtil util = new CSVUtil(representativeFuncPath,representativeIntermediatePath,predictionPath);
+        CSVUtil util = new CSVUtil(representativeFuncPath,predictionPath);
 
 
         ContainerScheduler scheduler = new ContainerScheduler(memCapacity, Policy.DSMP,
@@ -54,9 +54,9 @@ public class test {
 
         String predictionPath = "D:\\data\\representative\\prediction_results\\predictions.csv";
 
-        //int[] ints = {4,8,16,24,32,34,36,38,40,42,44,46,48};
-        int[] ints = {8,16,24,32,40,48};
-        Policy[] policies = {Policy.LRU,Policy.SSMP,Policy.DSMP};
+        int[] ints = {4,8,16,24,32,34,36,38,40,42,44,46,48};
+        //int[] ints = {8,16,24,32,40,48};
+        Policy[] policies = {/*Policy.LRU,*/Policy.SSMP/*,Policy.DSMP*/};
         int[] waitTimes = {10};
         for (int waitTime :waitTimes) {
             for (Policy policy :policies) {
@@ -68,7 +68,7 @@ public class test {
                     MemoryBlock.messageTTL = waitTime;
                     String preFixPath = dirPath + waitTime + "ms\\" + policy.toString();
 
-                    CSVUtil util = new CSVUtil(representativeFuncPath,representativeIntermediatePath,predictionPath);
+                    CSVUtil util = new CSVUtil(representativeFuncPath,predictionPath);
                     util.readData(true);
 
                     ContainerScheduler scheduler = new ContainerScheduler(memCapacity, policy,representativeInvokePath,

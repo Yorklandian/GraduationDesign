@@ -16,9 +16,18 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * CSV工具类，负责处理CSV的读写等操作。完成数据的输入输出。
+ */
 public class CSVUtil {
+    /**
+     * functions.csv路径
+     */
     private String dataPath;
-    private String intermediateRecordPath;
+    //private String intermediateRecordPath;
+    /**
+     * 预测文件路径
+     */
     private String predictionPath;
 
 
@@ -26,12 +35,15 @@ public class CSVUtil {
     private List<String> highCostFunctionNameList = new ArrayList<>();
     private Map<String,List<Integer>> highCostFunctionPredictions = new HashMap<>();
 
-    public CSVUtil(String dataPath, String intermediateRecordPath, String predictionPath) {
+    public CSVUtil(String dataPath, String predictionPath) {
         this.dataPath = dataPath;
-        this.intermediateRecordPath = intermediateRecordPath;
+        //this.intermediateRecordPath = intermediateRecordPath;
         this.predictionPath = predictionPath;
     }
 
+    /**
+     * 清理csv util类中存储的数据
+     */
     public void clear(){
         this.highCostFunctionPredictions.clear();
         this.highCostFunctionNameList.clear();
@@ -47,14 +59,14 @@ public class CSVUtil {
         int iCount = 0;
         int fCount = 0;
         try(BufferedReader br = new BufferedReader(new FileReader(this.dataPath));
-            BufferedWriter bw = new BufferedWriter(new FileWriter(this.intermediateRecordPath))){
+            /*BufferedWriter bw = new BufferedWriter(new FileWriter(this.intermediateRecordPath))*/){
             CSVParser parser = CSVFormat.DEFAULT.withFirstRecordAsHeader().withAllowDuplicateHeaderNames().parse(br);
-            CSVPrinter printer = new CSVPrinter(bw,CSVFormat.DEFAULT.withHeader("name","time"));
+            /*CSVPrinter printer = new CSVPrinter(bw,CSVFormat.DEFAULT.withHeader("name","time"));*/
 
             //遍历所有record
             for (CSVRecord record :parser) {
                 if(fCount >= 4000 ){
-                    printer.close();
+                    //printer.close();
                     break;
                 }
                 String hashApp = record.get("HashApp");
@@ -77,7 +89,7 @@ public class CSVUtil {
 
 
                 //是否生成调用list,若generateMapOnly为true,则不生成(由python脚本负责生成调用list)
-                if(!generateMapOnly){
+                /*if(!generateMapOnly){
                     //生成此function的invoke list
                     for (int minute = 1; minute <= 1440 ; minute++) {
                         int startTime = (minute-1) * 60 * 1000;
@@ -96,7 +108,7 @@ public class CSVUtil {
                             }
                         }
                     }
-                }
+                }*/
 
                 fCount++;
             }
@@ -113,7 +125,7 @@ public class CSVUtil {
             for (String name : highCostFunctionNameList) {
                 System.out.println("high cost func name: " + name);
             }*/
-            printer.close();
+           /* printer.close();*/
 
 
         } catch (IOException e) {

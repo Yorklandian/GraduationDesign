@@ -1,15 +1,40 @@
 package Simulator;
 
+/**
+ * 函数实体类
+ */
 public class Function {
-
-
+    /**
+     * 函数内存占用
+     */
     private int memSize;
+    /**
+     * 冷启动执行时间
+     */
     private int coldRunTime;
+    /**
+     * 热启动执行时间
+     */
     private int warmRunTime;
+    /**
+     * 一天内总调用次数
+     */
     private int invocationCount;
+    /**
+     * 得分
+     */
     private int score;
+    /**
+     * 所属的app
+     */
     private String appName;
+    /**
+     * 函数名
+     */
     private String name;
+    /**
+     * 属于此函数的容器数量
+     */
     private int containerNum = 0;
 
 
@@ -23,10 +48,16 @@ public class Function {
         this.score = invocationCount * memSize;
     }
 
+    /**
+     * 增加函数容器数量
+     */
     public void increaseContainerNum(){
         this.containerNum++;
     }
 
+    /**
+     * 减少函数容器数量
+     */
     public void decreaseContainerNum(){
         this.containerNum--;
         if (containerNum < 0){

@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 内存分配器，负责进行主空间以及独立空间的初始空间分配以及动态伸缩
+ */
 public class MemAllocator {
     public static int maxMemoryBlockCount = 500;
     public static int maxMemoryBlockCountForOneFunc = 100;
@@ -40,6 +43,7 @@ public class MemAllocator {
      * 静态时会按照调用均值计算吞吐量进行分配
      * 动态时会按照预测数据第一分钟的值进行分配
      * @param policy 采取的策略
+     * @param simple 是否进行简单分配
      */
     public void initAllocator(Policy policy, boolean simple){
         int sepMemLeft = maxSepMemBlockCapacity;
@@ -55,7 +59,7 @@ public class MemAllocator {
                 case SSMP:
                     //如果只做简单分配，只分配两块
                     if(simple){
-                        minutes = 2;
+                        minutes = 1;
                     } else {
                         //静态分配初始化时按照总调用次数的平均值来进行计算
                         int invokePerMinute = invokeCount/1440;
@@ -90,9 +94,11 @@ public class MemAllocator {
             sepMemLeft -= memToAllocate;
             this.seperatedMemBlocksMap.put(func.getName(), block);
 
-            System.out.println("mem allocated for " + name + ": " + memToAllocate
-                    + "  base num: " + minutes
-                    + "  allocate block num: " + allocateBlockNum);
+            if(policy != Policy.LRU){
+                System.out.println("mem allocated for " + name + ": " + memToAllocate
+                        + "  base num: " + minutes
+                        + "  allocate block num: " + allocateBlockNum);
+            }
 
             if(full){
                 break;
@@ -102,7 +108,7 @@ public class MemAllocator {
 
 
     /**
-     * 在采取动态策略是每分钟进行动态缩放
+     * 在采取动态策略时每分钟进行动态缩放
      * 缩放时先处理释放空间给主空间的，这样能够较大限度的进行分配
      * @param minute 当前是第几分钟
      */
