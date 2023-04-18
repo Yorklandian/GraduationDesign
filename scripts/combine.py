@@ -52,7 +52,7 @@ memory["divvied"] = new_mem
 joined = joined.join(memory, how="inner", on="HashApp", lsuffix='', rsuffix='_mems')
 joined = joined.T.drop_duplicates().T.reindex() #去除重复的列
 joined.index = joined["HashApp"]
-joined.to_csv("E:\\data\\combined.csv") #生成组合后的csv
+joined.to_csv("C:\\Users\\Administrator\\Desktop\\Cloud\\combined.csv") #生成组合后的csv
 
 
 

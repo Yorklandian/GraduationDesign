@@ -9,14 +9,17 @@ datapath = "C:\\Users\\Administrator\\Desktop\\Cloud\\Azure2019Data\\Azure2019\\
 invocation_prefix = "invocations_per_function_md.anon"
 suffixes = [".d01.csv",".d02.csv",".d03.csv",".d04.csv",".d05.csv",".d06.csv",
             ".d07.csv",".d08.csv",".d09.csv",".d10.csv",".d11.csv",".d12.csv"]
-high_cost_function_names = ["f1de419dc75ea0f629deaf936e0b65934cbf2bc444ffd7b3116e3a19dd108f11",
-                            "5608f70ad5c4f89e83b01f37bdabd7b89f79338b34776128d68676d83cd3de15",
-                            "6dc157fa79f808bd7cf577af09efaee2dad035d658e549d4219e705a181d8917",
-                            "3a7e7d0856fa781c7b04c5c45fb622a8eb794a0f4b84b64807c111fa8e423d22",
-                            "f4dc04b1dd73316e1b916468f43a0327467320152c4d1be823279fcf2b1621cc"]
+high_cost_function_names = ['302d008d9ce2416f673edbf4947568af7ad0bda43625e60b9495a8cd3837c14d',
+'e79fff2fdf4c23cd6c1e2e09e73bfb29ad15d05fea859eb1a11f603247dd7b2d',
+'52df3473cd810e5d9eb4923260c0189b6136da3193253f984fb97bca8e8b3deb',
+'26a1acad7557c7c2a530057e1f67cc314fb85bc8cb14d18a773acb904ccebcb7',
+'9997866f59da25f7bf81fa2f196ea2fe29ead8e7667b38f7b97baead85a02a7b',
+'32716dda51c8da83a50988d9c29cce9d52bbfc5b420b501790431ec691ccd5c4',
+'e7cd675a9087f97c9c3f5861ef1c646938f820063f313ac639bd23f80b1463ba',
+'0ac2bba85d41212c738939478d6c143a6dcc6b104dc3cb5d7c910a12cc1d1f66']
 
-pick_res_path = "D:\\data\\representative\\highcost_invocations"
-prediction_res_path = "D:\\data\\representative\\prediction_results"
+pick_res_path = "D:\\data\\frequent\\highcost_invocations"
+prediction_res_path = "D:\\data\\frequent\\prediction_results"
 
 has_csv_data = True
 
@@ -64,7 +67,7 @@ backup_data = pd.read_csv(os.path.join(datapath,invocation_prefix+suffixes[0]))
 backup_data.dropna()
 backup_data.index = backup_data["HashFunction"]
 
-daily_datas = list[pd.DataFrame]
+daily_datas = []
 if has_csv_data == False:
     #1.挑出每天高频函数的invocation信息并存储在csv中 TODO:可以放在内存中，不做CSV保存
     for day_suffix in suffixes:
@@ -82,6 +85,8 @@ predictions = pd.DataFrame(columns=columns)
 for func_name in high_cost_function_names:
     if has_csv_data == True:
         data = readDataFromCSV(func_name)
+    else:
+        data = readDataFromMemory(func_name)
     # 将数据转换为pandas的时间序列,假设第一天为2019-03-09
     dates = pd.date_range('2019-03-09', periods=len(data), freq='min')
     #series = pd.Series(data=data)

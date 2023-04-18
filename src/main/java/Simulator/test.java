@@ -1,40 +1,70 @@
-package FSM;
+package Simulator;
 
-import Simulator.MemoryBlock;
 import Simulator.Utils.CSVUtil;
-import Simulator.ContainerScheduler;
 import Simulator.Enums.Policy;
 
 public class test {
 
 
     public static void main(String[] args) {
-        //test();
-        simulateMultipleTimes();
+        test();
+        //simulateMultipleTimes();
     }
 
     public static void test(){
 
         String representativeFuncPath = "D:\\data\\representative\\functions.csv";
         String representativeInvokePath = "D:\\data\\representative\\invokes.csv";
-        String representativeIntermediatePath = "D:\\data\\representative\\intermediate.csv";
+        String repPredictionPath = "D:\\data\\representative\\prediction_results\\predictions.csv";
         String repInvokeResPath = "D:\\data\\representative\\results\\invokeRes.csv";
         String repContainerResPath = "D:\\data\\representative\\results\\container.csv";
-        String perMinResPath = "D:\\data\\representative\\results\\perMinute.csv";
-        String memPath = "D:\\data\\representative\\results\\mem.csv";
-        String predictionPath = "D:\\data\\representative\\prediction_results\\predictions.csv";
-
-        int memCapacity = 48 * 1024; //内存池空间 单位：Mb
-        CSVUtil util = new CSVUtil(representativeFuncPath,predictionPath);
+        String repPerMinResPath = "D:\\data\\representative\\results\\perMinute.csv";
+        String repMemPath = "D:\\data\\representative\\results\\mem.csv";
 
 
-        ContainerScheduler scheduler = new ContainerScheduler(memCapacity, Policy.DSMP,
+        String rareFuncPath = "D:\\data\\rare\\functions.csv";
+        String rareInvokePath = "D:\\data\\rare\\invokes.csv";
+        String rarePredictionPath = "D:\\data\\rare\\prediction_results\\predictions.csv";
+        String rareInvokeResPath = "D:\\data\\rare\\results\\invokeRes.csv";
+        String rareContainerResPath = "D:\\data\\rare\\results\\container.csv";
+        String rarePerMinResPath = "D:\\data\\rare\\results\\perMinute.csv";
+        String rareMemPath = "D:\\data\\rare\\results\\mem.csv";
+
+        String freqFuncPath = "D:\\data\\frequent\\functions.csv";
+        String freqInvokePath = "D:\\data\\frequent\\invokes.csv";
+        String freqPredictionPath = "D:\\data\\frequent\\prediction_results\\predictions.csv";
+        String freqInvokeResPath = "D:\\data\\frequent\\results\\invokeRes.csv";
+        String freqContainerResPath = "D:\\data\\frequent\\results\\container.csv";
+        String freqPerMinResPath = "D:\\data\\frequent\\results\\perMinute.csv";
+        String freqMemPath = "D:\\data\\frequent\\results\\mem.csv";
+
+
+
+
+        int memCapacity = 16 * 1024; //内存池空间 单位：Mb
+        /*CSVUtil util = new CSVUtil(representativeFuncPath,predictionPath);
+        ContainerScheduler scheduler = new ContainerScheduler(memCapacity, Policy.LRU,
                 representativeInvokePath,repInvokeResPath,
                 repContainerResPath,perMinResPath,
-                memPath, (int) (memCapacity * 0.7));
+                memPath, (int) (memCapacity * 0.7));*/
+
+
+        /*CSVUtil util = new CSVUtil(rareFuncPath,rarePredictionPath);
+        ContainerScheduler scheduler = new ContainerScheduler(memCapacity, Policy.LRU,
+                rareInvokePath,rareInvokeResPath,
+                rareContainerResPath,rarePerMinResPath,
+                rareMemPath, (int) (memCapacity * 0.7));*/
+
+        CSVUtil util = new CSVUtil(freqFuncPath,freqPredictionPath);
+        ContainerScheduler scheduler = new ContainerScheduler(memCapacity, Policy.DSMP,
+                freqInvokePath,freqInvokeResPath,
+                freqContainerResPath,freqPerMinResPath,
+                freqMemPath, (int) (memCapacity * 0.7));
+
+
         util.readData(true);
         util.sendDataToSimulator(scheduler);
-        boolean simpleAllocate = true;
+        boolean simpleAllocate = false;
         scheduler.doMainLoop(1440, simpleAllocate);
 
 
@@ -54,9 +84,9 @@ public class test {
 
         String predictionPath = "D:\\data\\representative\\prediction_results\\predictions.csv";
 
-        int[] ints = {4,8,16,24,32,34,36,38,40,42,44,46,48};
-        //int[] ints = {8,16,24,32,40,48};
-        Policy[] policies = {/*Policy.LRU,*/Policy.SSMP/*,Policy.DSMP*/};
+        //int[] ints = {4,8,16,24,32,34,36,38,40,42,44,46,48};
+        int[] ints = {8};
+        Policy[] policies = {Policy.LRU,/*Policy.SSMP*//*,Policy.DSMP*/};
         int[] waitTimes = {10};
         for (int waitTime :waitTimes) {
             for (Policy policy :policies) {

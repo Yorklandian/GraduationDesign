@@ -101,6 +101,7 @@ public class MemAllocator {
             }
 
             if(full){
+                System.out.println("full");
                 break;
             }
         }
