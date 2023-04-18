@@ -18,7 +18,7 @@ high_cost_function_names = ["f1de419dc75ea0f629deaf936e0b65934cbf2bc444ffd7b3116
 pick_res_path = "D:\\data\\representative\\highcost_invocations"
 prediction_res_path = "D:\\data\\representative\\prediction_results"
 
-has_csv_data = True
+has_csv_data = False
 
 #获取所有highCost函数一天的数据
 def get_one_day_data(path:str, backup:pd.DataFrame):
@@ -80,8 +80,7 @@ for i in range(1,1441): columns.append(i)
     
 predictions = pd.DataFrame(columns=columns)
 for func_name in high_cost_function_names:
-    if has_csv_data == True:
-        data = readDataFromCSV(func_name)
+    data = readDataFromCSV(func_name)
     # 将数据转换为pandas的时间序列,假设第一天为2019-03-09
     dates = pd.date_range('2019-03-09', periods=len(data), freq='min')
     #series = pd.Series(data=data)
